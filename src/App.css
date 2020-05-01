@@ -1,0 +1,20 @@
+html, body {
+    height: 100%;
+}
+
+#root {
+    height: 100%;
+}
+
+.App {
+    text-align: center;
+    height: 100%;
+}
+
+.Header {
+    background-color: rgba(158, 237, 255, 0.9);
+    height: 150px;
+    padding: 55px;
+    color: darkblue;
+}
+
