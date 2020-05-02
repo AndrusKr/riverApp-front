@@ -1,6 +1,7 @@
 import React, {Component} from "react";
 import ReactTable from "react-table";
 import "react-table/react-table.css";
+import axios from "axios";
 import AddRiver from "./AddRiver";
 
 class Rivers extends Component {
@@ -10,78 +11,60 @@ class Rivers extends Component {
   }
 
   componentDidMount() {
-    this.fetchRivers();
+    this.getRivers();
   }
 
-  addRiver(river) {
-    const jwtToken = "Bearer_" + localStorage.getItem("jwt");
-    fetch("http://localhost:8080/api/v1/rivers/", {
-      method: 'POST',
-      headers: {
-        "Authorization": jwtToken,
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify(river)
-    })
-      .then(res => this.fetchRivers())
+  addRiver = river => {
+    axios.post(
+      "http://localhost:8080/api/v1/admin/rivers/",
+      river,
+      {
+        headers: {
+          "Authorization": "Bearer_" + localStorage.getItem("jwt"),
+          "Content-Type": "application/json"
+        }
+      }).then(() => this.getRivers())
       .catch(err => console.log(err))
-  }
+  };
 
-  fetchRivers = () => {
-    // const jwtToken = "Bearer_" + localStorage.getItem("jwt");
-    const jwtToken = "Bearer_eyJhbGciOiJIUzI1NiJ9.eyJzdWIiOiJsZCIsInJvbGVzIjpbIlJPTEVfVVNFUiJdLCJpYXQiOjE1ODc2MjkyOTIsImV4cCI6MTU5NjAyOTI5Mn0.966fWaqrHFcYVTyFuFprgQztNdwQ-Zr2Lv5ycDb7LHU";
-    // fetch("http://localhost:8080/api/v1/rivers/", {
-    //   method: "GET",
-    //   mode: "no-cors",
-    //   headers: new Headers({
-    //     "Authorization": jwtToken,
-    //     "Content-Type": "application/json"
-    //   }),
-    // })
-
-    fetch("http://localhost:8080/api/v1/rivers/", {
-      method: "GET",
-      mode: "no-cors",
-      headers: {
-        "Authorization": jwtToken, //the token is a variable which holds the token
-        "Origin": "http://localhost:3000",
-        "Accept": "*/*",
-        "Access-Control-Request-Method": "GET"
-      }
-    })
-      .then((response) => response.json())
-      .then((responseData) => {
-        this.setState({
-          rivers: responseData
-        })
+  getRivers() {
+    axios.get(
+      "http://localhost:8080/api/v1/admin/rivers/",
+      {
+        headers: {
+          "Authorization": "Bearer_" + localStorage.getItem("jwt")
+        }
+      }).then((response) => {
+      this.setState({
+        rivers: response.data
       })
+    })
       .catch(err => console.error("error: " + err));
   }
 
   updateRiver(river) {
-    const jwtToken = "Bearer_" + localStorage.getItem("jwt");
-    fetch("http://localhost:8080/api/v1/admn/rivers/", {
-      method: "PUT",
-      headers: {
-        "Authorization": jwtToken,
-        "Content-Type": "application/json"
-      },
-      body: JSON.stringify(river)
-    })
-      .then(res => this.fetchRivers())
+    axios.put(
+      "http://localhost:8080/api/v1/admin/rivers/",
+      river,
+      {
+        headers: {
+          "Authorization": "Bearer_" + localStorage.getItem("jwt"),
+          "Content-Type": "application/json"
+        }
+      },)
+      .then(() => this.getRivers())
       .catch(err => console.log(err))
   }
 
   deleteRiver = (id) => {
-    const jwtToken = "Bearer_" + localStorage.getItem("jwt");
     if (window.confirm('Are you sure to delete river?')) {
-      fetch("http://localhost:8080/api/v1/admn/rivers/" + id, {
-        method: 'DELETE',
-        headers: new Headers({
-          "Authorization": jwtToken,
-          "Content-Type": "application/json"
-        })
-      }).then(res => this.fetchRivers())
+      axios.delete(
+        "http://localhost:8080/api/v1/admin/rivers/" + id,
+        {
+          headers: {
+            "Authorization": "Bearer_" + localStorage.getItem("jwt")
+          }
+        }).then(() => this.getRivers())
         .catch(err => console.error(err));
     }
   };
@@ -103,36 +86,33 @@ class Rivers extends Component {
     const columns = [{
       Header: "River name",
       accessor: "name",
+      width: "14%",
       Cell: this.editable
     }, {
-      Header: "Length",
+      Header: "Length (km)",
       accessor: "length",
+      width: "14%",
       Cell: this.editable
     }, {
-      Header: "Pool area",
-      accessor: 'amount',
+      Header: "Pool area (km2)",
+      accessor: "poolArea",
+      width: "14%",
       Cell: this.editable
     }, {
-      Header: "Water consumption",
-      accessor: 'rate',
+      Header: "Water consumption (m3/sec)",
+      accessor: "waterConsumption",
+      width: "14%",
       Cell: this.editable
     }, {
-      Header: "Average slope",
-      accessor: 'rate',
+      Header: "Average slope (m/km)",
+      accessor: "averageSlope",
+      width: "14%",
       Cell: this.editable
     }, {
-      Header: "Flow rate",
-      accessor: 'rate',
+      Header: "Flow rate (m/sec)",
+      accessor: 'flowRate',
+      width: "14%",
       Cell: this.editable
-    }, {
-      sortable: false,
-      filterable: false,
-      width: 100,
-      Cell: row => (
-        <div>
-          <button onClick={() => this.deleteRiver(row.original.id)}>Delete</button>
-        </div>
-      )
     }, {
       sortable: false,
       filterable: false,
@@ -142,18 +122,35 @@ class Rivers extends Component {
           <button onClick={() => this.updateRiver(row.original)}>Update</button>
         </div>
       )
-    }
-
-      ,];
+    }, {
+      sortable: false,
+      filterable: false,
+      width: 100,
+      Cell: row => (
+        <div>
+          <button onClick={() => this.deleteRiver(row.original.id)}>Delete</button>
+        </div>
+      )
+    },
+    ];
 
     return (
       <div>
-        <AddRiver addRiver={this.addRiver} fetchRivers={this.fetchRivers}/>
+        <div style={{
+          display: "flex", justifyContent: "flex-end"
+        }}>
+          <AddRiver addRiver={this.addRiver} fetchRivers={this.getRivers}/>
+          <button onClick={this.logOut}>Log Out</button>
+        </div>
         <ReactTable data={this.state.rivers} columns={columns} filterable={true}/>
       </div>
     );
   }
 
+  logOut() {
+    localStorage.clear();
+    window.location.reload(false);
+  }
 }
 
 export default Rivers;

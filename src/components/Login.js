@@ -19,9 +19,9 @@ class Login extends Component {
       username: this.state.username,
       password: this.state.password
     }).then(response => {
-      const jwtToken = response.data["token"];
-      if (jwtToken !== null) {
-        localStorage.setItem("jwt", jwtToken);
+      const jwt = response.data["token"];
+      if (jwt !== null) {
+        localStorage.setItem("jwt", jwt);
         this.setState({isAuthenticated: true});
       } else {
         this.setState({open: true});
